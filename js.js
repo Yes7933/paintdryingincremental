@@ -1,8 +1,8 @@
 /** @format */
 
 document.addEventListener("DOMContentLoaded", () => {
-	const paintdrytime = 50;
-	const potmelttime = 50;
+	const paintdrytime = 10000;
+	const potmelttime = 10000;
 	const inflationinterval = 125;
 	let paintinterval = null;
 	let potinterval = null;
