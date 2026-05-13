@@ -1,6 +1,45 @@
+<!-- @format -->
+
 <head>
-    
+	<title>Paint Drying Incremental</title>
+	<link rel="stylesheet" href="./css.css" />
+	<script src="./classes.js"></script>
+	<script src="./js.js"></script>
 </head>
 <body>
-  
+	<div id="header">
+		<h1>Paint Drying Incremental</h1>
+		<button id="save">manual save (0/100)</button>
+		<button id="import">import save (0/100)</button>
+		<button id="export">export to clipboard (0/100)</button>
+	</div>
+	<div style="display: flex; flex-direction: row; height: 92.5%; width: 100%;">
+		<div id="body0"></div>
+		<div id="body">
+			<div style="display: flex; flex-direction: row; gap: 5%; width: 50%; justify-content: center;">
+				<div id="paint" style="display: block">6/20L</div>
+				<div id="purity" style="display: none">100% Pure</div>
+			</div>
+			<span id="paintchips"> You have: 0 paint chips </span>
+			<span id="money" style="display: none"> You have: ¥0</span>
+			<span id="dialouge"> </span>
+			<button id="paintchip">
+				<span id="stack" style="filter: invert(1);"></span>
+			</button>
+			<span id="progress">0/30</span>
+			<button id="apply">apply paint</button>
+			<button id="eat" style="display: none">eat a paint chip</button>
+			<button id="sell" style="display: none">sell a paint chip</button>
+			<br />
+			<span id="inflation" style="display: none">Inflation is increasing paint prices by 100%</span>
+		</div>
+		<div id="body2">
+			<button id="pot">Pot
+				Melt 1 paint chip to gain 2L of less pure paint, which lowers paint value.
+				Cost: 1 Paint Chip
+				<span id="fuel">Fuel: 0/60</span>
+				<span id="potprogress">Progress: 0/20</span>
+			</div>
+		</div>
+	</div>
 </body>
