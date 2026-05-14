@@ -172,8 +172,8 @@ class Upgrade {
 		this.updateText();
 		this.element.addEventListener("click", () => {
 				if ((this.value < this.cap) && (this.currency.value >= this.cost()) && this.requirement()) {
-					this.value++;
 					this.currency.add(-this.cost());
+					this.value++;
 					this.updateText();
 					this.currency.updateText();
 					this.effect();

@@ -46,7 +46,7 @@ body {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 1%;
+    gap: 0.2vw;
 }
 .Moneyupgrade {
     font-size: 10px;
@@ -57,4 +57,13 @@ body {
     font-size: 14px;
     height: 30%;
     aspect-ratio: 1 / 1;
+}
+#bubble {
+    width: 5%;
+    aspect-ratio: 1 / 1;
+    border: black solid 2px;
+    background-color: #00ffff20;
+    border-radius: 50%;
+    position: absolute;
+    font-size: 8px;
 }

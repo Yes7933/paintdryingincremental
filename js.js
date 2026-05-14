@@ -1,15 +1,17 @@
 /** @format */
 
 document.addEventListener("DOMContentLoaded", () => {
-	const paintdrytime = 10000;
-	const potmelttime = 10000;
-	const inflationinterval = 125;
+	let paintdrytime = 10000;
+	let potmelttime = 10000;
+	let inflationinterval = 125;
 	let paintinterval = null;
 	let potinterval = null;
 	let saveinterval = null;
+	let bubbleinterval = null;
 	let savecount = 0;
 	let importcount = 0;
 	let exportcount = 0;
+	let painttimer = 30;
 	game = {
 		//initialize everything first then upgrades (as upgrades have to refer to game during initialization)
 		layers: {
@@ -45,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					game.layers.paintchips.others.painttime = data.painttime;
 					game.layers.paintchips.others.paint = data.paint;
 					game.layers.paintchips.others.painteat = data.painteat;
-					game.layers.paintchips.others.paintstack = data.paintstack === undefined ? 0 : data.paintstack
+					game.layers.paintchips.others.paintstack = data.paintstack === undefined ? 0 : data.paintstack;
 					game.layers.paintchips.others.purity = data.purity === undefined ? 1 : data.purity;
 					game.layers.paintchips.updateText();
 					if (game.layers.paintchips.others.painton) paintinterval = setInterval(painttick, paintdrytime);
@@ -113,11 +115,22 @@ document.addEventListener("DOMContentLoaded", () => {
 						for (let i = 0; i < game.layers.money.upgrades.length; i++) {
 							if (game.layers.money.upgrades[i].element !== null) game.layers.money.upgrades[i].updateText();
 						}
-						if (game.layers.money.upgrades[0].value >= 1) setupInflation();
+						if (game.layers.money.upgrades[0].value >= 1) {
+							document.getElementById("dialouge").textContent = "stupid inflation ruining everything";
+							setupInflation();
+						}
 						if (game.layers.money.upgrades[1].value === 1) {
+							document.getElementById("dialouge").textContent = "make sure you have enough fuel";
 							showPot();
 							document.getElementById("fuel").textContent = game.layers.money.others.fuel + "/80";
 							document.getElementById("purity").textContent = Math.round(game.layers.paintchips.others.purity * 10000) / 100 + "% pure";
+						}
+						painttimer = 30 - game.layers.money.upgrades[6].value;
+						document.getElementById("progress").textContent = game.layers.paintchips.others.painttime + "/" + painttimer;
+						if (game.layers.paintchips.others.painton) document.getElementById("paintchip").style.opacity = game.layers.paintchips.others.painttime / painttimer;
+						if (game.layers.money.upgrades[5].value === 1) {
+							document.getElementById("dialouge").textContent = "you click on the bubbles by the way";
+							bubbleinterval = setInterval(generateBubble, 12500);
 						}
 					}
 					if (game.layers.money.others.poton) potinterval = setInterval(pottick, potmelttime);
@@ -154,6 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				document.getElementById("paint").textContent = game.layers.paintchips.others.paint + "/20L";
 				document.getElementById("purity").textContent = Math.round(game.layers.paintchips.others.purity * 10000) / 100 + "% pure";
 				if (game.layers.money.upgrades[0].value === 1) {
+					document.getElementById("dialouge").textContent = "stupid inflation ruining everything";
 					setupInflation();
 				}
 			},
@@ -173,6 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			[{ id: 2, at: 1 }],
 			false,
 			() => {
+				document.getElementById("dialouge").textContent = "make sure you have enough fuel";
 				if (game.layers.money.upgrades[1].value === 1) {
 					showPot();
 				}
@@ -187,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			"Buy 19 fuel.",
 			game.layers.money,
 			() => {
-				return 1000;
+				return 500;
 			},
 			Number.MAX_VALUE,
 			[{ id: 3, at: 10 }],
@@ -209,26 +224,84 @@ document.addEventListener("DOMContentLoaded", () => {
 				return 20000;
 			},
 			1,
-			[],
+			[{ id: 4, at: 1 }],
 			false,
 			() => {},
 			() => {
 				return true;
 			},
 		),
+		new Upgrade(
+			4,
+			"Stablizer",
+			"Increase the chance for inflation to lower, but increase how much it can change by.",
+			game.layers.money,
+			() => {
+				return Math.round(50000 * Math.pow(1.75, game.layers.money.upgrades[4].value));
+			},
+			10,
+			[
+				{ id: 5, at: 1 },
+				{ id: 6, at: 1 },
+			],
+			false,
+			() => {},
+			() => {
+				return true;
+			},
+		),
+		new Upgrade(
+			5,
+			"Skill-Based Drying",
+			"Unlock the ability to blow on the paint, to dry it faster.",
+			game.layers.money,
+			() => {
+				return 100000;
+			},
+			1,
+			[],
+			false,
+			() => {
+				document.getElementById("dialouge").textContent = "you click on the bubbles by the way";
+				bubbleinterval = setInterval(generateBubble, 12500);
+			},
+			() => {
+				return true;
+			},
+		),
+		new Upgrade(
+			6,
+			"No Longer 5 Minutes",
+			"Reduces the paint dry timer by 1 each upgrade.",
+			game.layers.money,
+			() => {
+				return Math.round(12345 * Math.pow(6.7, game.layers.money.upgrades[6].value));
+			},
+			5,
+			[],
+			false,
+			() => {
+				painttimer = 30 - game.layers.money.upgrades[6].value;
+				document.getElementById("progress").textContent = game.layers.paintchips.others.painttime + "/" + painttimer;
+			},
+			() => {
+				return true;
+			},
+		),
 	];
+	painttimer = 30 - game.layers.money.upgrades[6].value;
 	function save() {
-			let data = {
-				paintchips: null,
-				money: null,
-				settings: null,
-			};
-			data.settings = structuredClone(game.settings);
-			for (layer in game.layers) {
-				data[layer] = game.layers[layer].save();
-			}
-			localStorage.setItem("save", btoa(JSON.stringify(data)));
-			return btoa(JSON.stringify(data));
+		let data = {
+			paintchips: null,
+			money: null,
+			settings: null,
+		};
+		data.settings = structuredClone(game.settings);
+		for (layer in game.layers) {
+			data[layer] = game.layers[layer].save();
+		}
+		localStorage.setItem("save", btoa(JSON.stringify(data)));
+		return btoa(JSON.stringify(data));
 	}
 	function load(data) {
 		try {
@@ -240,8 +313,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			game.layers.money.load(data.money);
 		} catch (e) {
 			clearInterval(saveinterval);
-			alert("Error: " + e + "\n Your save will be wiped to fix this...");
 			localStorage.removeItem("save");
+			alert("Error: " + e + "\n Your save will be wiped to fix this...");
 			location.reload();
 		}
 	}
@@ -249,9 +322,9 @@ document.addEventListener("DOMContentLoaded", () => {
 	saveinterval = setInterval(save, 1000);
 	function painttick() {
 		game.layers.paintchips.others.painttime++;
-		document.getElementById("progress").textContent = game.layers.paintchips.others.painttime + "/30";
-		document.getElementById("paintchip").style.opacity = game.layers.paintchips.others.painttime / 30;
-		if (game.layers.paintchips.others.painttime >= 30) {
+		document.getElementById("progress").textContent = game.layers.paintchips.others.painttime + "/" + painttimer;
+		document.getElementById("paintchip").style.opacity = game.layers.paintchips.others.painttime / painttimer;
+		if (game.layers.paintchips.others.painttime >= painttimer) {
 			document.getElementById("progress").textContent = "Ready to harvest!";
 			clearInterval(paintinterval);
 		}
@@ -317,7 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	function setupInflation() {
 		document.getElementById("inflation").style.display = "inline";
 		setInterval(() => {
-			game.layers.money.others.inflation = Math.max(game.layers.money.others.inflation + (Math.random() - 0.55) * 0.33, 1);
+			game.layers.money.others.inflation = Math.max(game.layers.money.others.inflation + (Math.random() - (0.55 + 0.025 * game.layers.money.upgrades[4].value)) * (0.33 + 0.33 * game.layers.money.upgrades[4].value), 1);
 			document.getElementById("inflation").textContent = `Inflation is increasing paint prices by ${Math.round(game.layers.money.others.inflation * 100)}%`;
 			game.layers.money.upgrades[0].updateText();
 		}, inflationinterval);
@@ -325,6 +398,21 @@ document.addEventListener("DOMContentLoaded", () => {
 	function showPot() {
 		document.getElementById("body2").style.opacity = 1;
 		document.getElementById("purity").style.display = "block";
+	}
+	function generateBubble() {
+		let bubble = document.createElement("button");
+		bubble.id = "bubble";
+		bubble.textContent = "+1 paint prog";
+		bubble.style.left = Math.random() * 95 + "%";
+		bubble.style.top = Math.random() * 95 + "%";
+		bubble.addEventListener("click", function () {
+			if (game.layers.paintchips.others.painton) painttick();
+			this.remove();
+		});
+		setTimeout(() => {
+			document.getElementById("bubble").remove();
+		}, 1000);
+		document.body.appendChild(bubble);
 	}
 	document.getElementById("apply").addEventListener("click", () => {
 		if ((!game.layers.paintchips.others.painton || game.layers.money.upgrades[3].value === 1) && game.layers.paintchips.others.paint > 0) {
@@ -336,25 +424,26 @@ document.addEventListener("DOMContentLoaded", () => {
 			} else {
 				game.layers.paintchips.others.paintstack++;
 				document.getElementById("stack").textContent = "x" + game.layers.paintchips.others.paintstack;
-				let oldtime = game.layers.paintchips.others.painttime * 1
+				let oldtime = game.layers.paintchips.others.painttime * 1;
 				game.layers.paintchips.others.painttime = 0;
-				if (oldtime >= 30) {
+				if (oldtime >= painttimer) {
 					document.getElementById("paintchip").style.opacity = 0;
 					paintinterval = setInterval(painttick, paintdrytime);
 				}
-				document.getElementById("progress").textContent = game.layers.paintchips.others.painttime + "/30";
+				document.getElementById("progress").textContent = game.layers.paintchips.others.painttime + "/" + painttimer;
+				document.getElementById("paintchip").style.opacity = game.layers.paintchips.others.painttime / painttimer;
 			}
 			game.layers.paintchips.others.painton = true;
 		}
 	});
 	document.getElementById("paintchip").addEventListener("click", () => {
-		if (game.layers.paintchips.others.painttime >= 30) {
+		if (game.layers.paintchips.others.painttime >= painttimer) {
 			game.layers.paintchips.add(game.layers.paintchips.gaincalc());
 			game.layers.paintchips.others.painton = false;
 			game.layers.paintchips.others.painttime = 0;
 			document.getElementById("paintchip").style.opacity = 0;
 			game.layers.paintchips.updateText();
-			document.getElementById("progress").textContent = "0/30";
+			document.getElementById("progress").textContent = "0/" + painttimer;
 			game.layers.paintchips.others.paintstack = 0;
 			document.getElementById("stack").textContent = "";
 			if (game.layers.paintchips.highestValue >= 1) document.getElementById("eat").style.display = "block";
@@ -399,6 +488,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			importcount = 0;
 			let data = window.prompt("Enter save file here: ");
 			load(data);
+			save();
+			location.reload();
 		}
 		document.getElementById("import").textContent = `import save (${importcount}/100)`;
 	});
